@@ -10,6 +10,8 @@ from flask import (
     flash,
 )
 
+logger = logging.getLogger('techtrends_logger')
+
 # Function to get a database connection.
 def get_db_connection():
     """This function connects to database with the name database.db."""
@@ -47,17 +49,17 @@ def index():
 def post(post_id):
     post = get_post(post_id)
     if post is None:
-        app.logger.info("Article not found.")
+        logger.info("Article not found.")
         return render_template("404.html"), 404
     else:
-        app.logger.info(f'"Article {post[2]}" retrieved!')
+        logger.info(f'"Article {post[2]}" retrieved!')
         return render_template("post.html", post=post)
 
 
 # Define the About Us page
 @app.route("/about")
 def about():
-    app.logger.info(f'"About Us" retrieved!')
+    logger.info(f'"About Us" retrieved!')
     return render_template("about.html")
 
 
@@ -77,7 +79,7 @@ def create():
             )
             connection.commit()
             connection.close()
-            app.logger.info(f'"{title}" article has been created!')
+            logger.info(f'"{title}" article has been created!')
             return redirect(url_for("index"))
 
     return render_template("create.html")
@@ -89,7 +91,7 @@ def healthz():
         connection = get_db_connection()
         connection.execute("SELECT * FROM posts LIMIT 1;")
     except Exception as e:
-        app.logger.error(e)
+        logger.error(e)
         response = app.response_class(
             response=json.dumps({"result": "ERROR - unhealthy"}),
             status=500,
@@ -124,6 +126,16 @@ def metrics():
 
 # start the application on port 3111
 if __name__ == "__main__":
-    FORMAT = "%(asctime)s %(message)s"
-    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+    stdout_handler = logging.StreamHandler()
+    stdout_handler.setLevel(logging.INFO)
+
+    stderr_handler = logging.FileHandler(filename='errors.log')
+    stderr_handler.setLevel(logging.ERROR)
+
+    handlers = [stderr_handler, stdout_handler]
+
+    format_output = "%(asctime)s %(message)s"
+
+    logging.basicConfig(format=format_output, level=logging.DEBUG, handlers=handlers)
+
     app.run(host="0.0.0.0", port="3111")
