@@ -10,13 +10,10 @@ from flask import (
     flash,
 )
 
-total_db_connections = 0
-
 # Function to get a database connection.
-# This function connects to database with the name `database.db`
 def get_db_connection():
-    global total_db_connections
-    total_db_connections += 1
+    """This function connects to database with the name database.db."""
+    app.config["TOTAL_DB_CONNECTIONS"] += 1
     connection = sqlite3.connect("database.db")
     connection.row_factory = sqlite3.Row
     return connection
@@ -33,6 +30,7 @@ def get_post(post_id):
 # Define the Flask application
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "your secret key"
+app.config["TOTAL_DB_CONNECTIONS"] = 0
 
 # Define the main route of the web application
 @app.route("/")
@@ -113,7 +111,7 @@ def metrics():
     posts = connection.execute("SELECT COUNT(id) FROM posts").fetchone()
     response = app.response_class(
         response=json.dumps(
-            {"db_connection_count": total_db_connections, "post_count": posts[0]}
+            {"db_connection_count": app.config["TOTAL_DB_CONNECTIONS"], "post_count": posts[0]}
         ),
         status=200,
         mimetype="application/json",
