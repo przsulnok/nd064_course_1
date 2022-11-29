@@ -111,7 +111,10 @@ def metrics():
     posts = connection.execute("SELECT COUNT(id) FROM posts").fetchone()
     response = app.response_class(
         response=json.dumps(
-            {"db_connection_count": app.config["TOTAL_DB_CONNECTIONS"], "post_count": posts[0]}
+            {
+                "db_connection_count": app.config["TOTAL_DB_CONNECTIONS"],
+                "post_count": posts[0],
+            }
         ),
         status=200,
         mimetype="application/json",
